@@ -18,7 +18,7 @@
 #define DITHER_GAMMA 2.2
 #define LUT_FOLDER "%SYSTEMROOT%\\Temp\\luts"
 
-#define RELEASE_IF_NOT_NULL(x) { if (x != NULL) { x->Release(); } }
+#define RELEASE_IF_NOT_nullptr(x) { if (x != nullptr) { x->Release(); } }
 #define _STRINGIFY(x) #x
 #define STRINGIFY(x) _STRINGIFY(x)
 #define RESIZE(x, y) realloc(x, (y) * sizeof(*x));
@@ -30,7 +30,7 @@
 #define __LOG_ONLY_ONCE(x, y) if (static bool first_log_##y = true) { log_to_file(x); first_log_##y = false; }
 #define _LOG_ONLY_ONCE(x, y) __LOG_ONLY_ONCE(x, y)
 #define LOG_ONLY_ONCE(x) _LOG_ONLY_ONCE(x, __COUNTER__)
-#define MESSAGE_BOX_DBG(x, y) MessageBoxA(NULL, x, "DEBUG HOOK DWM", y);
+#define MESSAGE_BOX_DBG(x, y) MessageBoxA(nullptr, x, "DEBUG HOOK DWM", y);
 
 #define EXECUTE_WITH_LOG(winapi_func_hr) \
 	do { \
@@ -41,7 +41,7 @@
 			ss << "ERROR AT LINE: " << __LINE__ << " HR: " << hr << " - DETAILS: "; \
 			LPSTR error_message = nullptr; \
 			FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, \
-				NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_message, 0, NULL); \
+				nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_message, 0, nullptr); \
 			ss << error_message; \
 			log_to_file(ss.str().c_str()); \
 			LocalFree(error_message); \
@@ -58,7 +58,7 @@
 			ss << "ERROR AT LINE: " << __LINE__ << " HR: " << hr << " - DETAILS: "; \
 			LPSTR error_message = nullptr; \
 			FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, \
-				NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_message, 0, NULL); \
+				nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_message, 0, nullptr); \
 			ss << error_message << " - DX COMPILE ERROR: " << (char*)error_interface->GetBufferPointer(); \
 			error_interface->Release(); \
 			log_to_file(ss.str().c_str()); \
@@ -100,7 +100,7 @@ void print_error(const char* prefix_message)
 void log_to_file(const char* log_buf)
 {
 	FILE* pFile = fopen(LOG_FILE_PATH, "a");
-	if (pFile == NULL)
+	if (pFile == nullptr)
 	{
 		// print_error("Error during logging"); // Comment out to prevent UI freeze when used inside hooked functions
 		return;
@@ -401,7 +401,7 @@ lutData* luts;
 bool ParseLUT(lutData* lut, char* filename)
 {
 	FILE* file = fopen(filename, "r");
-	if (file == NULL) return false;
+	if (file == nullptr) return false;
 
 	char line[256];
 	unsigned int lutSize;
@@ -487,8 +487,8 @@ bool AddLUTs(char* folder)
 			lutData* lut = &luts[numLuts];
 			if (sscanf(findData.cFileName, "%d_%d", &lut->left, &lut->top) == 2)
 			{
-				lut->isHdr = strstr(fileName, "hdr") != NULL;
-				lut->textureView = NULL;
+				lut->isHdr = strstr(fileName, "hdr") != nullptr;
+				lut->textureView = nullptr;
 				if (!ParseLUT(lut, filePath))
 				{
 					// TODO: Remove this debug instruction
@@ -565,7 +565,7 @@ lutData* GetLUTDataFromCOverlayContext(void* context, bool hdr)
 			return &luts[i];
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 void InitializeStuff(IDXGISwapChain* swapChain)
@@ -585,13 +585,13 @@ void InitializeStuff(IDXGISwapChain* swapChain)
 			ID3DBlob* compile_error_interface;
 			LOG_ONLY_ONCE(("Trying to compile vshader with this code:\n" + std::string(shaders)).c_str())
 			EXECUTE_D3DCOMPILE_WITH_LOG(
-				D3DCompile(shaders, sizeof shaders, NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &vsBlob, &
+				D3DCompile(shaders, sizeof shaders, nullptr, nullptr, nullptr, "VS", "vs_5_0", 0, 0, &vsBlob, &
 					compile_error_interface), compile_error_interface)
 
 
 			LOG_ONLY_ONCE("Vertex shader compiled successfully")
 			EXECUTE_WITH_LOG(device->CreateVertexShader(vsBlob->GetBufferPointer(),
-				vsBlob->GetBufferSize(), NULL, &vertexShader))
+				vsBlob->GetBufferSize(), nullptr, &vertexShader))
 
 
 			LOG_ONLY_ONCE("Vertex shader created successfully")
@@ -613,12 +613,12 @@ void InitializeStuff(IDXGISwapChain* swapChain)
 			ID3DBlob* psBlob;
 			ID3DBlob* compile_error_interface;
 			EXECUTE_D3DCOMPILE_WITH_LOG(
-				D3DCompile(shaders, sizeof shaders, NULL, NULL, NULL, "PS", "ps_5_0", 0, 0, &psBlob, &
+				D3DCompile(shaders, sizeof shaders, nullptr, nullptr, nullptr, "PS", "ps_5_0", 0, 0, &psBlob, &
 					compile_error_interface), compile_error_interface)
 
 			LOG_ONLY_ONCE("Pixel shader compiled successfully")
 			device->CreatePixelShader(psBlob->GetBufferPointer(),
-			                          psBlob->GetBufferSize(), NULL, &pixelShader);
+			                          psBlob->GetBufferSize(), nullptr, &pixelShader);
 			psBlob->Release();
 		}
 		{
@@ -632,7 +632,7 @@ void InitializeStuff(IDXGISwapChain* swapChain)
 			vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 			vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-			EXECUTE_WITH_LOG(device->CreateBuffer(&vertexBufferDesc, NULL, &vertexBuffer))
+			EXECUTE_WITH_LOG(device->CreateBuffer(&vertexBufferDesc, nullptr, &vertexBuffer))
 		}
 		{
 			D3D11_SAMPLER_DESC samplerDesc = {};
@@ -662,10 +662,10 @@ void InitializeStuff(IDXGISwapChain* swapChain)
 
 			ID3D11Texture3D* tex;
 			EXECUTE_WITH_LOG(device->CreateTexture3D(&desc, &initData, &tex))
-			EXECUTE_WITH_LOG(device->CreateShaderResourceView((ID3D11Resource*)tex, NULL, &luts[i].textureView))
+			EXECUTE_WITH_LOG(device->CreateShaderResourceView((ID3D11Resource*)tex, nullptr, &luts[i].textureView))
 			tex->Release();
 			free(lut->rawLut);
-			lut->rawLut = NULL;
+			lut->rawLut = nullptr;
 		}
 		{
 			D3D11_SAMPLER_DESC samplerDesc = {};
@@ -703,7 +703,7 @@ void InitializeStuff(IDXGISwapChain* swapChain)
 
 			ID3D11Texture2D* tex;
 			EXECUTE_WITH_LOG(device->CreateTexture2D(&desc, &initData, &tex))
-			EXECUTE_WITH_LOG(device->CreateShaderResourceView((ID3D11Resource*)tex, NULL, &noiseTextureView))
+			EXECUTE_WITH_LOG(device->CreateShaderResourceView((ID3D11Resource*)tex, nullptr, &noiseTextureView))
 			tex->Release();
 		}
 		{
@@ -713,7 +713,7 @@ void InitializeStuff(IDXGISwapChain* swapChain)
 			constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 			constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-			EXECUTE_WITH_LOG(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffer))
+			EXECUTE_WITH_LOG(device->CreateBuffer(&constantBufferDesc, nullptr, &constantBuffer))
 			LOG_ONLY_ONCE("Final buffer created in InitializeStuff")
 		}
 	}
@@ -735,25 +735,25 @@ void InitializeStuff(IDXGISwapChain* swapChain)
 
 void UninitializeStuff()
 {
-	RELEASE_IF_NOT_NULL(device)
-	RELEASE_IF_NOT_NULL(deviceContext)
-	RELEASE_IF_NOT_NULL(vertexShader)
-	RELEASE_IF_NOT_NULL(pixelShader)
-	RELEASE_IF_NOT_NULL(inputLayout)
-	RELEASE_IF_NOT_NULL(vertexBuffer)
-	RELEASE_IF_NOT_NULL(samplerState)
+	RELEASE_IF_NOT_nullptr(device)
+	RELEASE_IF_NOT_nullptr(deviceContext)
+	RELEASE_IF_NOT_nullptr(vertexShader)
+	RELEASE_IF_NOT_nullptr(pixelShader)
+	RELEASE_IF_NOT_nullptr(inputLayout)
+	RELEASE_IF_NOT_nullptr(vertexBuffer)
+	RELEASE_IF_NOT_nullptr(samplerState)
 	for (int i = 0; i < 2; i++)
 	{
-		RELEASE_IF_NOT_NULL(texture[i])
-		RELEASE_IF_NOT_NULL(textureView[i])
+		RELEASE_IF_NOT_nullptr(texture[i])
+		RELEASE_IF_NOT_nullptr(textureView[i])
 	}
-	RELEASE_IF_NOT_NULL(noiseSamplerState)
-	RELEASE_IF_NOT_NULL(noiseTextureView)
-	RELEASE_IF_NOT_NULL(constantBuffer)
+	RELEASE_IF_NOT_nullptr(noiseSamplerState)
+	RELEASE_IF_NOT_nullptr(noiseTextureView)
+	RELEASE_IF_NOT_nullptr(constantBuffer)
 	for (int i = 0; i < numLuts; i++)
 	{
 		free(luts[i].rawLut);
-		RELEASE_IF_NOT_NULL(luts[i].textureView)
+		RELEASE_IF_NOT_nullptr(luts[i].textureView)
 	}
 	free(luts);
 	free(lutTargets);
@@ -799,7 +799,7 @@ bool ApplyLUT(void* cOverlayContext, IDXGISwapChain* swapChain, struct tagRECT* 
 		D3D11_TEXTURE2D_DESC oldTextureDesc = textureDesc[index];
 		if (newBackBufferDesc.Width > oldTextureDesc.Width || newBackBufferDesc.Height > oldTextureDesc.Height)
 		{
-			if (texture[index] != NULL)
+			if (texture[index] != nullptr)
 			{
 				texture[index]->Release();
 				textureView[index]->Release();
@@ -820,25 +820,25 @@ bool ApplyLUT(void* cOverlayContext, IDXGISwapChain* swapChain, struct tagRECT* 
 
 			textureDesc[index] = newTextureDesc;
 
-			EXECUTE_WITH_LOG(device->CreateTexture2D(&textureDesc[index], NULL, &texture[index]))
+			EXECUTE_WITH_LOG(device->CreateTexture2D(&textureDesc[index], nullptr, &texture[index]))
 			EXECUTE_WITH_LOG(
-				device->CreateShaderResourceView((ID3D11Resource*)texture[index], NULL, &textureView[index]))
+				device->CreateShaderResourceView((ID3D11Resource*)texture[index], nullptr, &textureView[index]))
 		}
 
 		backBufferDesc = newBackBufferDesc;
 
-		EXECUTE_WITH_LOG(device->CreateRenderTargetView((ID3D11Resource*)backBuffer, NULL, &renderTargetView))
+		EXECUTE_WITH_LOG(device->CreateRenderTargetView((ID3D11Resource*)backBuffer, nullptr, &renderTargetView))
 		const D3D11_VIEWPORT d3d11_viewport(0, 0, backBufferDesc.Width, backBufferDesc.Height, 0.0f, 1.0f);
 		deviceContext->RSSetViewports(1, &d3d11_viewport);
 
-		deviceContext->OMSetRenderTargets(1, &renderTargetView, NULL);
+		deviceContext->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		renderTargetView->Release();
 
 		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		deviceContext->IASetInputLayout(inputLayout);
 
-		deviceContext->VSSetShader(vertexShader, NULL, 0);
-		deviceContext->PSSetShader(pixelShader, NULL, 0);
+		deviceContext->VSSetShader(vertexShader, nullptr, 0);
+		deviceContext->PSSetShader(pixelShader, nullptr, 0);
 
 		deviceContext->PSSetShaderResources(0, 1, &textureView[index]);
 		deviceContext->PSSetShaderResources(1, 1, &lut->textureView);
@@ -1066,7 +1066,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 				DWORD rev;
 				DWORD revSize = sizeof(rev);
 				RegGetValueA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "UBR", RRF_RT_DWORD,
-				             NULL, &rev, &revSize);
+				             nullptr, &rev, &revSize);
 
 				if (rev >= 706)
 				{
